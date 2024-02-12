@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { v4 as uuidv4, validate } from 'uuid';
+import { UUID_REGEX } from '../constants/constants'
 
 const users: { id: string, name: string }[] = [];
 
@@ -28,11 +29,43 @@ export function handleRequest(req: IncomingMessage, res: ServerResponse) {
     } else if (url && url.startsWith('/api/users/') && method === 'PUT') {
         const userId = url.split('/').pop();
         handleUpdateUser(req, res, userId);
-    } else {
+    } else if (url && url.startsWith('/api/users/') && method === 'DELETE') {
+        const userId = url.split('/').pop();
+        handleDeleteUser(req, res, userId);
+    }else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid endpoint' }));
     }
 }
+
+function handleDeleteUser(
+    req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
+    if (!userId || !isValidUUID(userId)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid userId' }));
+        return;
+    }
+
+    const userIndex = users.findIndex(user => user.id === userId);
+    if (userIndex !== -1) {
+        users.splice(userIndex, 1);
+        res.writeHead(204);
+        res.end();
+    } else {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'User not found' }));
+    }
+}
+
+// function isValidUUID(uuid: string): boolean {
+//     return /^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){4}[0-9a-fA-F]{12}$/.test(uuid);
+// }
+
+// function isValidUUID(uuid: string): boolean {
+//     return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(uuid);
+// }
+
+const isValidUUID = (uuid: string) => UUID_REGEX.test(uuid);
 
 function handleUpdateUser(
     req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
