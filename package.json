@@ -50,6 +50,7 @@
     "colorette": "^2.0.20",
     "commander": "^2.20.3",
     "cross-spawn": "^7.0.3",
+    "dotenv": "^16.4.3",
     "electron-to-chromium": "^1.4.665",
     "enhanced-resolve": "^5.15.0",
     "envinfo": "^7.11.1",
