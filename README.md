@@ -35,7 +35,7 @@ Copy code
   - Server should answer with status code 400 and corresponding message if userId is invalid (not uuid)
   - Server should answer with status code 404 and corresponding message if record with id === userId doesn't exist
  //  http://localhost:3003/api/users/{id}
-   // {"name": "Uladz"}
+
 
 - POST api/users:
   - Used to create record about new user and store it in database
@@ -43,7 +43,7 @@ Copy code
   - Server should answer with status code 400 and corresponding message if request body does not contain required fields
     // http://localhost:3003/api/users + body
     {
-     "username": Mark Smith",
+     "username": "Tom Smith",
      "age": 32,
      "hobbies": ["running", "traveling"]
     }
