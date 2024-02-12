@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { v4 as uuidv4, validate } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { UUID_REGEX } from '../constants/constants'
 
 const users: { id: string, name: string }[] = [];
@@ -53,23 +53,16 @@ function handleDeleteUser(
         res.end();
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'User not found' }));
+        res.end(JSON.stringify({ error: `User doesn't exist` }));
     }
 }
 
-// function isValidUUID(uuid: string): boolean {
-//     return /^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){4}[0-9a-fA-F]{12}$/.test(uuid);
-// }
-
-// function isValidUUID(uuid: string): boolean {
-//     return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(uuid);
-// }
-
 const isValidUUID = (uuid: string) => UUID_REGEX.test(uuid);
+
 
 function handleUpdateUser(
     req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
-    if (!userId || !validate(userId)) {
+    if (!userId || !isValidUUID(userId)) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid userId' }));
         return;
@@ -95,7 +88,7 @@ function handleUpdateUser(
                 res.end(JSON.stringify(updatedUser));
             } else {
                 res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'User not found' }));
+                res.end(JSON.stringify({ error: `UserId doesn't exist` }));
             }
         } catch (error) {
             console.error(error);
@@ -104,6 +97,8 @@ function handleUpdateUser(
         }
     });
 }
+
+
 
 function updateUser(
     userId: string, newName: string): { id: string, name: string } | undefined {
@@ -114,7 +109,6 @@ function updateUser(
     }
     return undefined;
 }
-
 
 
 function handleGetUsers(req: IncomingMessage, res: ServerResponse) {
@@ -159,7 +153,7 @@ function addUser(name: string): { id: string, name: string } {
 
 function handleGetUserById(
     req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
-    if (!userId) {
+    if (!userId || !isValidUUID(userId)) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid userId' }));
         return;
@@ -171,6 +165,6 @@ function handleGetUserById(
         res.end(JSON.stringify(user));
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'User not found' }));
+        res.end(JSON.stringify({ error: `userId doesn't exist` }));
     }
 }
