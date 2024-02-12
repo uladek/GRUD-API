@@ -23,30 +23,31 @@ Copy code
 # And start multiple instances of the application with:
 - npm run start:multi
 
-### API Endpoints
-The API has the following endpoints:
-
-- GET /api/users: Returns all users.
-- GET /api/users/{userId}: Returns a user with the specified userId.
-- POST /api/users: Creates a new user.
-- PUT /api/users/{userId}: Updates an existing user with the specified userId.
-- DELETE /api/users/{userId}: Deletes an existing user with the specified userId.
-
 ## Endpoints api/users:
 
 - GET api/users:
   - Used to get all persons
   - Server should answer with status code 200 and all users records
+      // http://localhost:3003/api/users
 
 - GET api/users/{userId}:
   - Server should answer with status code 200 and record with id === userId if it exists
   - Server should answer with status code 400 and corresponding message if userId is invalid (not uuid)
   - Server should answer with status code 404 and corresponding message if record with id === userId doesn't exist
+ //  http://localhost:3003/api/users/{id}
+   // {"name": "Uladz"}
 
 - POST api/users:
   - Used to create record about new user and store it in database
   - Server should answer with status code 201 and newly created record
   - Server should answer with status code 400 and corresponding message if request body does not contain required fields
+    // http://localhost:3003/api/users + body
+    {
+     "username": Mark Smith",
+     "age": 32,
+     "hobbies": ["running", "traveling"]
+    }
+
 
 - PUT api/users/{userId}:
   - Used to update existing user

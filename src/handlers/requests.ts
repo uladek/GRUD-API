@@ -1,31 +1,21 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { v4 as uuidv4 } from 'uuid';
-import { UUID_REGEX } from '../constants/constants'
+import { IUser } from 'src/types/types';
+import { v4 as uuidv4, validate as validateUUID } from 'uuid';
 
-const users: { id: string, name: string }[] = [];
-
+// const users: { id: string, name: string }[] = [];
+const users: IUser[] = [];
 
 export function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
-    console.log("REC:" , req );
     const { method, url } = req;
-    console.log(`${method} ${url}`);
-
 
     if (url === '/api/users' && method === 'POST') {
         handleCreateUser(req, res);
-        // http://localhost:3003/api/users + body
-
      } else if (url === '/api/users' && method === 'GET') {
         handleGetUsers(req, res);
-        // http://localhost:3003/api/users
-
     } else if (url && url.startsWith('/api/users/') && method === 'GET') {
         const userId = url.split('/').pop();
         handleGetUserById(req, res, userId);
-        //  http://localhost:3003/api/users/{id}
-        // {"name": "Uladz"}
-
     } else if (url && url.startsWith('/api/users/') && method === 'PUT') {
         const userId = url.split('/').pop();
         handleUpdateUser(req, res, userId);
@@ -40,7 +30,7 @@ export function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
 function handleDeleteUser(
     req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
-    if (!userId || !isValidUUID(userId)) {
+    if (!userId || !validateUUID(userId)) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid userId' }));
         return;
@@ -57,12 +47,9 @@ function handleDeleteUser(
     }
 }
 
-const isValidUUID = (uuid: string) => UUID_REGEX.test(uuid);
-
-
 function handleUpdateUser(
     req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
-    if (!userId || !isValidUUID(userId)) {
+    if (!userId || !validateUUID(userId)) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid userId' }));
         return;
@@ -76,19 +63,22 @@ function handleUpdateUser(
     req.on('end', () => {
         try {
             const userData = JSON.parse(body);
-            if (!userData || !userData.name) {
+            if (
+                !userData || !userData.username || !userData.age || !userData.hobbies) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Missing required fields' }));
                 return;
             }
 
-            const updatedUser = updateUser(userId, userData.name);
+            const updatedUser = updateUser(
+                userId, userData.username, userData.age, userData.hobbies);
             if (updatedUser) {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(updatedUser));
             } else {
                 res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: `UserId doesn't exist` }));
+                res.end(JSON.stringify(
+                    { error: `User with id ${userId} doesn't exist` }));
             }
         } catch (error) {
             console.error(error);
@@ -98,18 +88,21 @@ function handleUpdateUser(
     });
 }
 
-
-
 function updateUser(
-    userId: string, newName: string): { id: string, name: string } | undefined {
+    userId: string,
+    newUsername: string,
+    newAge: number,
+    newHobbies: string[]
+    ): IUser | undefined {
     const userIndex = users.findIndex(user => user.id === userId);
     if (userIndex !== -1) {
-        users[userIndex].name = newName;
+        users[userIndex].username = newUsername;
+        users[userIndex].age = newAge;
+        users[userIndex].hobbies = newHobbies;
         return users[userIndex];
     }
     return undefined;
 }
-
 
 function handleGetUsers(req: IncomingMessage, res: ServerResponse) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -125,13 +118,19 @@ function handleCreateUser(req: IncomingMessage, res: ServerResponse) {
     req.on('end', () => {
         try {
             const userData = JSON.parse(body);
-            if (!userData || !userData.name) {
+            if (
+                !userData
+                || !userData.username
+                || !userData.age
+                || !userData.hobbies
+                ) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Missing required fields' }));
                 return;
             }
 
-            const newUser = addUser(userData.name);
+            const newUser =
+             addUser(userData.username, userData.age, userData.hobbies);
 
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(newUser));
@@ -143,28 +142,28 @@ function handleCreateUser(req: IncomingMessage, res: ServerResponse) {
     });
 }
 
-
-function addUser(name: string): { id: string, name: string } {
+function addUser(username: string, age: number, hobbies: string[]): IUser {
     const id = uuidv4();
-    const newUser = { id, name };
+    const newUser: IUser = { id, username, age, hobbies };
     users.push(newUser);
     return newUser;
 }
 
 function handleGetUserById(
     req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
-    if (!userId || !isValidUUID(userId)) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid userId' }));
-        return;
-    }
+        if (!userId || !validateUUID(userId)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid userId' }));
+            return;
+        }
 
-    const user = users.find(user => user.id === userId);
-    if (user) {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(user));
-    } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: `userId doesn't exist` }));
+        const user = users.find(user => user.id === userId);
+        if (user) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(user));
+        } else {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(
+                { error: `User with userId ${userId} doesn't exist` }));
+        }
     }
-}
