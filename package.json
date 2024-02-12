@@ -1,20 +1,18 @@
 {
   "name": "my-webpack-project",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "description": "My webpack project",
   "main": "src/index.ts",
   "scripts": {
-    "start:dev11": "nodemon --exec ts-node ./src/index.ts",
-    "build": "webpack",
-    "start": "npm run start:dev",
-    "start:dev2": "ts-node-dev src/index.ts",
-    "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node-dev' src/index.ts",
+    "build": "tsc",
+    "webpack": "webpack --mode=production --node-env=production",
     "clean": "rm -rf build",
-    "start:prod": "webpack && build",
+    "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node-dev' src/index.ts",
+    "start:prod": "webpack && node build/bundle.js",
     "lint": "eslint src",
     "lint-fix": "eslint . --fix",
-    "format": "prettier --write src"
+    "dev": "npx nodemon"
   },
   "author": "Uladzimir Hrydzin",
   "license": "ISC",
