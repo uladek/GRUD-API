@@ -13,6 +13,7 @@
     "clean": "rm -rf build",
     "start:prod": "webpack && build",
     "lint": "eslint src",
+    "lint-fix": "eslint . --fix",
     "format": "prettier --write src"
   },
   "author": "Uladzimir Hrydzin",

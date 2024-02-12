@@ -1,16 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate } from 'uuid';
 
-// const users = [
-//     { id: '1', name: 'Uladz' },
-//     { id: '2', name: 'Uladzimir' },
-//     { id: '3', name: 'Vova' },
-// ];
 const users: { id: string, name: string }[] = [];
-// const USERS_FILE_PATH = 'users.json';
-
-
-// const database: { id: string, name: string }[] = [];
 
 
 export function handleRequest(req: IncomingMessage, res: ServerResponse) {
@@ -22,23 +13,76 @@ export function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
     if (url === '/api/users' && method === 'POST') {
         handleCreateUser(req, res);
+        // http://localhost:3003/api/users + body
 
      } else if (url === '/api/users' && method === 'GET') {
         handleGetUsers(req, res);
-        // curl http://localhost:3003/api/users
+        // http://localhost:3003/api/users
 
     } else if (url && url.startsWith('/api/users/') && method === 'GET') {
         const userId = url.split('/').pop();
         handleGetUserById(req, res, userId);
-        // curl http://localhost:3003/api/users/1
+        //  http://localhost:3003/api/users/{id}
+        // {"name": "Uladz"}
 
-
-
+    } else if (url && url.startsWith('/api/users/') && method === 'PUT') {
+        const userId = url.split('/').pop();
+        handleUpdateUser(req, res, userId);
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid endpoint' }));
     }
 }
+
+function handleUpdateUser(
+    req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
+    if (!userId || !validate(userId)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid userId' }));
+        return;
+    }
+
+    let body = '';
+    req.on('data', (chunk) => {
+        body += chunk.toString();
+    });
+
+    req.on('end', () => {
+        try {
+            const userData = JSON.parse(body);
+            if (!userData || !userData.name) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Missing required fields' }));
+                return;
+            }
+
+            const updatedUser = updateUser(userId, userData.name);
+            if (updatedUser) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(updatedUser));
+            } else {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'User not found' }));
+            }
+        } catch (error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+        }
+    });
+}
+
+function updateUser(
+    userId: string, newName: string): { id: string, name: string } | undefined {
+    const userIndex = users.findIndex(user => user.id === userId);
+    if (userIndex !== -1) {
+        users[userIndex].name = newName;
+        return users[userIndex];
+    }
+    return undefined;
+}
+
+
 
 function handleGetUsers(req: IncomingMessage, res: ServerResponse) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -54,7 +98,6 @@ function handleCreateUser(req: IncomingMessage, res: ServerResponse) {
     req.on('end', () => {
         try {
             const userData = JSON.parse(body);
-            // Проверяем, что в теле запроса есть все необходимые поля
             if (!userData || !userData.name) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Missing required fields' }));
@@ -62,10 +105,6 @@ function handleCreateUser(req: IncomingMessage, res: ServerResponse) {
             }
 
             const newUser = addUser(userData.name);
-
-            // Сохраняем нового пользователя в базе данных
-            // const newUser = { id: generateUserId(), name: userData.name };
-            // database.push(newUser);
 
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(newUser));
@@ -77,12 +116,6 @@ function handleCreateUser(req: IncomingMessage, res: ServerResponse) {
     });
 }
 
-// function addUser(name: string): { id: string, name: string } {
-//     const id = generateUserId();
-//     const newUser = { id, name };
-//     users.push(newUser);
-//     return newUser;
-// }
 
 function addUser(name: string): { id: string, name: string } {
     const id = uuidv4();
@@ -90,12 +123,6 @@ function addUser(name: string): { id: string, name: string } {
     users.push(newUser);
     return newUser;
 }
-
-// function generateUserId(): string {
-//     // Генерируем уникальный идентификатор пользователя (просто для примера)
-//     return Math.random().toString(36).substring(2, 10);
-// }
-
 
 function handleGetUserById(
     req: IncomingMessage, res: ServerResponse, userId: string | undefined) {
