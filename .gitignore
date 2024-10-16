@@ -6,6 +6,7 @@
 
 # production
 /bundle
+/build
 
 
 # Logs

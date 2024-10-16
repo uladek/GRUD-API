@@ -1,7 +1,8 @@
 {
   "name": "my-webpack-project",
   "version": "1.0.0",
-  "type": "commonjs",
+  "type": "module",
+
   "description": "My webpack project",
   "main": "src/index.ts",
   "scripts": {
