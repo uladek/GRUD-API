@@ -10,7 +10,7 @@ module.exports = {
       "sourceType": "module"
     },
   rules: {
-      "max-len": ["error", { "code": 90 }],
+      "max-len": ["error", { "code": 100 }],
       'max-lines-per-function': ['error', 40],
     },
 };

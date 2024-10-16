@@ -35,7 +35,7 @@ function sendError(res: ServerResponse, statusCode: number, message: string) {
     code: statusCode.toString(),
     error: message,
   };
-  res.end(JSON.stringify({ response }));
+  res.end(JSON.stringify(response));
 }
 
 function handleError(res: ServerResponse, error: unknown) {
