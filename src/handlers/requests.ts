@@ -8,9 +8,9 @@ export function handleRequest(req: IncomingMessage, res: ServerResponse) {
   try {
     const { method, url } = req;
 
-    if (url === '/api/users' && method === 'POST') {
+    if ((url === '/api/users' || url === '/api/users/') && method === 'POST') {
       handleCreateUser(req, res);
-    } else if (url === '/api/users' && method === 'GET') {
+    } else if ((url === '/api/users' || url === '/api/users/') && method === 'GET') {
       handleGetUsers(req, res);
     } else if (url && url.startsWith('/api/users/') && method === 'GET') {
       const userId = url.split('/').pop();
@@ -33,7 +33,7 @@ function sendError(res: ServerResponse, statusCode: number, message: string) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json' });
   const response = {
     code: statusCode.toString(),
-    errot: message,
+    error: message,
   };
   res.end(JSON.stringify({ response }));
 }
