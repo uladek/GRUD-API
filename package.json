@@ -11,6 +11,8 @@
     "clean": "rm -rf build",
     "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node-dev' src/index.ts",
     "start:prod": "webpack && node build/bundle.js",
+    "start:multi": "ts-node-dev src/clusters.ts",
+
     "lint": "eslint src",
     "lint-fix": "eslint . --fix",
     "dev": "npx nodemon"
